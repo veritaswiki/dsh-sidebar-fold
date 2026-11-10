@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Sidebar plugin fold",
+    "description": "Turns the Plugins row into a foldable group header: the arrow at its right edge folds the plugin entries, and the settings page picks which entries join the group."
+  }
+}

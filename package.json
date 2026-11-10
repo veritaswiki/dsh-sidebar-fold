@@ -1,0 +1,59 @@
+{
+  "name": "dsh-sidebar-fold",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Fold the DSH sidebar plugin entries into the Plugins row: one arrow toggles the group, a settings page picks which entries join it.",
+  "license": "MIT",
+  "keywords": [
+    "dsh-plugin",
+    "dsh",
+    "cordis",
+    "sidebar",
+    "ui"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/veritaswiki/dsh-sidebar-fold.git"
+  },
+  "homepage": "https://github.com/veritaswiki/dsh-sidebar-fold#readme",
+  "bugs": {
+    "url": "https://github.com/veritaswiki/dsh-sidebar-fold/issues"
+  },
+  "engines": {
+    "dsh": ">=0.2.2-rc.1"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "*"
+  },
+  "icon": "./icon.svg",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  }
+}

@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-339933.svg)](https://nodejs.org/en/download)
 <!-- npm: first publish pending; uncomment once the package is on the registry.
-[![npm version](https://img.shields.io/npm/v/@veritaswiki/dsh-sidebar-fold.svg)](https://www.npmjs.com/package/@veritaswiki/dsh-sidebar-fold)
+[![npm version](https://img.shields.io/npm/v/dsh-sidebar-fold-native.svg)](https://www.npmjs.com/package/dsh-sidebar-fold-native)
 -->
 
 Folds the plugin entries in the DSH sidebar into the **Plugins** row: a small arrow at the right edge of that row expands / collapses the group, and the settings page picks entry by entry which ones belong to it.
@@ -14,7 +14,7 @@ Folds the plugin entries in the DSH sidebar into the **Plugins** row: a small ar
 
 - **Arrow on the row** — the official Plugins row gets a chevron at its right edge (▾ / ▸); clicking it folds or unfolds the group, while clicking anywhere else on the row still opens the plugins page as usual. Folded, the sidebar keeps only Plugins and More.
 - **Per-entry switches** — `Settings → Sidebar plugin entries` holds the fold toggle plus the list of entries in the group: switch one off and it always stays in the sidebar on its own. Batch buttons for "group all" / "group none".
-- **Same page from the plugin detail** — opening `@veritaswiki/dsh-sidebar-fold` in the plugin manager shows the very same configuration page.
+- **Same page from the plugin detail** — opening `dsh-sidebar-fold-native` in the plugin manager shows the very same configuration page.
 - **No folding in the icon rail** — when the sidebar collapses to an icon rail, folding and click interception are skipped; the rail is already compact.
 - Folded by default, works right after install.
 
@@ -33,21 +33,21 @@ This is a DSH (Cordis) bundle; two ways to install it.
 
 ### A. Through `plugin_manager` (recommended)
 
-Ask the agent in DSH to install `@veritaswiki/dsh-sidebar-fold`; it calls `plugin_manager`:
+Ask the agent in DSH to install `dsh-sidebar-fold-native`; it calls `plugin_manager`:
 
 - `action: "install_bundle"`, `target` = an install spec:
   - local clone: `file:/abs/path/to/dsh-sidebar-fold`
   - or the repository: `github:veritaswiki/dsh-sidebar-fold`
 - then `action: "set_bundle"` to enable it.
 
-> The package name carries the `@veritaswiki` scope because the unscoped `dsh-sidebar-fold` on npm belongs to another author. It is not published to the registry yet; install it through the spec above.
+> The npm package is named `dsh-sidebar-fold-native` because the unscoped `dsh-sidebar-fold` on npm belongs to another author; the repository keeps its name.
 
 ### B. Manually attach to a profile
 
 1. Put the repository anywhere (referred to as `/abs/path/to/dsh-sidebar-fold`).
 2. Edit the profile's `package.json` (`~/.dsh/profiles/<profile>/package.json`):
-   - add `"@veritaswiki/dsh-sidebar-fold": "link:/abs/path/to/dsh-sidebar-fold"` to `dependencies`
-   - add `"@veritaswiki/dsh-sidebar-fold"` to the `dsh.profile.bundles` array
+   - add `"dsh-sidebar-fold-native": "link:/abs/path/to/dsh-sidebar-fold"` to `dependencies`
+   - add `"dsh-sidebar-fold-native"` to the `dsh.profile.bundles` array
 3. Install dependencies in the profile directory (DSH also does this on its next start).
 
 ### Dependencies

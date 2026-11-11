@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-339933.svg)](https://nodejs.org/en/download)
 <!-- npm 徽章：等首次发包后再开，位置留在这里。
-[![npm version](https://img.shields.io/npm/v/@veritaswiki/dsh-sidebar-fold.svg)](https://www.npmjs.com/package/@veritaswiki/dsh-sidebar-fold)
+[![npm version](https://img.shields.io/npm/v/dsh-sidebar-fold-native.svg)](https://www.npmjs.com/package/dsh-sidebar-fold-native)
 -->
 
 把 DSH 左侧栏里的插件入口折叠进「插件」这一行的分组里：行尾一个小箭头切换展开 / 折叠，设置页里逐项决定哪些入口进分组。
@@ -14,7 +14,7 @@
 
 - **行尾箭头折叠 / 展开** —— 官方「插件」行最右侧多一个小箭头（▾ / ▸），点它就是展开 / 折叠分组；点行内其他位置仍然照常打开插件页。折叠后侧栏只留「插件」「更多」两行。
 - **设置页逐项开关** —— `设置 → 左侧插件入口` 里有折叠总开关，以及「收进分组的入口」列表：逐项开关决定哪些入口参与折叠、哪些始终单独显示，另有「全部收进 / 全部移出」。
-- **插件详情页复用同一页** —— 在插件管理里点开 `@veritaswiki/dsh-sidebar-fold`，看到的是同一个配置页。
+- **插件详情页复用同一页** —— 在插件管理里点开 `dsh-sidebar-fold-native`，看到的是同一个配置页。
 - **图标轨道不折叠** —— 侧栏收成图标轨道（rail）时不折叠、不接管点击，图标本身就是紧凑形态。
 - 默认折叠，装完即生效。
 
@@ -33,21 +33,21 @@
 
 ### 方式 A：让 Agent 用 `plugin_manager` 安装（推荐）
 
-在 DSH 里对 Agent 说「装 `@veritaswiki/dsh-sidebar-fold`」，它会调 `plugin_manager`：
+在 DSH 里对 Agent 说「装 `dsh-sidebar-fold-native`」，它会调 `plugin_manager`：
 
 - `action: "install_bundle"`，`target` 填安装 spec：
   - 已 clone 到本地：`file:/abs/path/to/dsh-sidebar-fold`
   - 或 GitHub 上的仓库：`github:veritaswiki/dsh-sidebar-fold`
 - 装完 `action: "set_bundle"` 启用。
 
-> 包名带 `@veritaswiki` scope：npm 上不带 scope 的 `dsh-sidebar-fold` 已被别的作者占用。当前尚未发布到 registry，按上面的 install spec 安装。
+> npm 上的包名是 `dsh-sidebar-fold-native`：不带 scope 的 `dsh-sidebar-fold` 已被别的作者占用，仓库名保持不变。
 
 ### 方式 B：手动挂到 profile
 
 1. 把仓库放在任意目录（下面记作 `/abs/path/to/dsh-sidebar-fold`）。
 2. 编辑 profile 的 `package.json`（`~/.dsh/profiles/<profile>/package.json`）：
-   - `dependencies` 里加 `"@veritaswiki/dsh-sidebar-fold": "link:/abs/path/to/dsh-sidebar-fold"`
-   - `dsh.profile.bundles` 数组里加 `"@veritaswiki/dsh-sidebar-fold"`
+   - `dependencies` 里加 `"dsh-sidebar-fold-native": "link:/abs/path/to/dsh-sidebar-fold"`
+   - `dsh.profile.bundles` 数组里加 `"dsh-sidebar-fold-native"`
 3. 在 profile 目录安装依赖（DSH 下次启动时也会自行安装）。
 
 ### 依赖说明

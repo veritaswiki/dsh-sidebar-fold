@@ -1,5 +1,11 @@
 # dsh-sidebar-fold — Fold DSH sidebar plugin entries
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-339933.svg)](https://nodejs.org/en/download)
+<!-- npm: first publish pending; uncomment once the package is on the registry.
+[![npm version](https://img.shields.io/npm/v/@veritaswiki/dsh-sidebar-fold.svg)](https://www.npmjs.com/package/@veritaswiki/dsh-sidebar-fold)
+-->
+
 Folds the plugin entries in the DSH sidebar into the **Plugins** row: a small arrow at the right edge of that row expands / collapses the group, and the settings page picks entry by entry which ones belong to it.
 
 **Presentation only — no plugin is modified.**
@@ -8,7 +14,7 @@ Folds the plugin entries in the DSH sidebar into the **Plugins** row: a small ar
 
 - **Arrow on the row** — the official Plugins row gets a chevron at its right edge (▾ / ▸); clicking it folds or unfolds the group, while clicking anywhere else on the row still opens the plugins page as usual. Folded, the sidebar keeps only Plugins and More.
 - **Per-entry switches** — `Settings → Sidebar plugin entries` holds the fold toggle plus the list of entries in the group: switch one off and it always stays in the sidebar on its own. Batch buttons for "group all" / "group none".
-- **Same page from the plugin detail** — opening `dsh-sidebar-fold` in the plugin manager shows the very same configuration page.
+- **Same page from the plugin detail** — opening `@veritaswiki/dsh-sidebar-fold` in the plugin manager shows the very same configuration page.
 - **No folding in the icon rail** — when the sidebar collapses to an icon rail, folding and click interception are skipped; the rail is already compact.
 - Folded by default, works right after install.
 
@@ -27,26 +33,26 @@ This is a DSH (Cordis) bundle; two ways to install it.
 
 ### A. Through `plugin_manager` (recommended)
 
-Ask the agent in DSH to install `dsh-sidebar-fold`; it calls `plugin_manager`:
+Ask the agent in DSH to install `@veritaswiki/dsh-sidebar-fold`; it calls `plugin_manager`:
 
 - `action: "install_bundle"`, `target` = an install spec:
   - local clone: `file:/abs/path/to/dsh-sidebar-fold`
   - or the repository: `github:veritaswiki/dsh-sidebar-fold`
 - then `action: "set_bundle"` to enable it.
 
-> The first release is **not published to the npm registry**, so it is not searchable on npm.
+> The package name carries the `@veritaswiki` scope because the unscoped `dsh-sidebar-fold` on npm belongs to another author. It is not published to the registry yet; install it through the spec above.
 
 ### B. Manually attach to a profile
 
 1. Put the repository anywhere (referred to as `/abs/path/to/dsh-sidebar-fold`).
 2. Edit the profile's `package.json` (`~/.dsh/profiles/<profile>/package.json`):
-   - add `"dsh-sidebar-fold": "link:/abs/path/to/dsh-sidebar-fold"` to `dependencies`
-   - add `"dsh-sidebar-fold"` to the `dsh.profile.bundles` array
+   - add `"@veritaswiki/dsh-sidebar-fold": "link:/abs/path/to/dsh-sidebar-fold"` to `dependencies`
+   - add `"@veritaswiki/dsh-sidebar-fold"` to the `dsh.profile.bundles` array
 3. Install dependencies in the profile directory (DSH also does this on its next start).
 
 ### Dependencies
 
-`index.js` needs `@deepseek-ai/schemastery` for host-side Config validation. **DSH ships that package, so no separate install is needed** — the `dependencies` entry just states the relationship. This repository does not vendor `node_modules`.
+`index.js` needs `@deepseek-ai/schemastery` for host-side Config validation. **DSH ships that package, so no separate install is needed** — `package.json` declares it under `peerDependencies` with the range `>=3.19.0-0`, an explicit prerelease branch without which harness rc builds are silently excluded. This repository does not vendor `node_modules`.
 
 ## Version coupling and fail-open behavior
 
@@ -80,6 +86,10 @@ Note: `localStorage` follows the page origin (port); changing ports means a new 
 
 ## Known limitations
 
+- **It depends on the host's sidebar DOM.** Folding locates rows through `[class*="_panelList"] > button[aria-label="…"]`, verified against **DSH 0.2.2-rc.1**; a major host redesign (renaming `_panelList`, changing the row button, or dropping the `_collapsed` / `data-sidebar-collapsed` markers) makes folding stop working.
+- **Failure is fail-open, not a crash.** The worst case is that entries stop being hidden (the arrow may disappear too): nothing throws, clicks are not blocked, and no configuration is corrupted. Every read is wrapped in try/catch and falls back to "do not fold".
+- **Presentation layer only.** It does not inject into, rewrite, or proxy any plugin, adds no sidebar entry and opens no menu; the `<style>` block disappears on uninstall and plugin behavior itself is untouched.
+- **No folding in the icon rail.** When the sidebar collapses to an icon rail, folding and click interception are skipped entirely (rows narrower than 80px are ignored); the rail is already compact.
 - Entries are matched by row title (`aria-label`); two entries with an identical title fold together (rare).
 - The 30px hot zone at the right edge of the Plugins row overlaps the host's own click target and is resolved during the document capture phase; a heavily customized theme may shift it.
 - Order in the settings page follows the sidebar slot `order`.

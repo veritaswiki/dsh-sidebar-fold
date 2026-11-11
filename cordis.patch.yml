@@ -1,7 +1,7 @@
-# dsh-sidebar-fold — 左侧插件折叠
+# @veritaswiki/dsh-sidebar-fold — 左侧插件折叠
 #
 # 由 DSH Loader 读取并把本插件插入为一行 Loader 条目。
 # 注意：insert.name 必须与 package.json 的 name 完全一致，Loader 按包名解析模块。
 - insert:
     - id: sidebar-fold
-      name: 'dsh-sidebar-fold'
+      name: '@veritaswiki/dsh-sidebar-fold'

@@ -1,11 +1,11 @@
 window.__ModuleLoader__.load({
-  id: 'dsh-sidebar-fold',
+  id: '@veritaswiki/dsh-sidebar-fold',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
 
     /** 本插件的包标识（同步用于 plugins.bundle.config） */
-    const PKG_ID = 'dsh-sidebar-fold';
+    const PKG_ID = '@veritaswiki/dsh-sidebar-fold';
     /** 本插件的 locale 命名空间与 Host Config 命名空间 */
     const NS = 'sidebar-fold';
     /** 折叠开关的本地缓存键（'1' = 折叠，首帧防闪烁与只读兜底） */

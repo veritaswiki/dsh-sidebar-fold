@@ -1,6 +1,6 @@
 import z from '@deepseek-ai/schemastery';
 
-export const name = 'dsh-sidebar-fold';
+export const name = '@veritaswiki/dsh-sidebar-fold';
 
 /**
  * 持久化在用户 Profile cordis.patch.yml 中的折叠配置（跨端口、跨浏览器同步，volatile 热更新不重启插件）。

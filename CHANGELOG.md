@@ -2,6 +2,31 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/) 与 [语义化版本](https://semver.org/)。
 
+## [Unreleased]
+
+## [1.1.0] - 2026-11-10
+
+运行时行为与 1.0.0 完全一致（`client.js` / `index.js` 除包名字符串外逐字未变）；本版是打包与发布层。
+
+### Changed
+
+- 包名改为 `@veritaswiki/dsh-sidebar-fold`：`package.json` 的 `name`、`index.js` 的 `name` 导出、
+  `client.js` 的模块 id 与 `PKG_ID`、`cordis.patch.yml` 的 `insert.name` 四处逐字一致。
+  原因：npm 上不带 scope 的 `dsh-sidebar-fold` 已被其他作者占用。
+- `@deepseek-ai/schemastery` 从 `dependencies` 移到 `peerDependencies`，范围写成 `>=3.19.0-0`（带显式预发布分支），
+  否则 harness 的 rc 版本会被静默排除。
+
+### Added
+
+- `publishConfig: { "access": "public", "provenance": true }`，为后续 npm 发布准备（本版尚未发包）。
+- `assets/icon-180.png`：由 `icon.svg` 渲染的 180×180 位图（awesome 条目只收位图）。
+- `engines.node: ">=20"`，与 CI 使用的 Node 版本对齐。
+- `files` 补 `README.en.md`、`CHANGELOG.md`、`LICENSE`、`assets/icon-180.png`。
+- `scripts/sanitize-check.mjs` 扩展 needle：私钥、本机 home 路径、私有包前缀（拼接写法，避免本文件自报家门）、Tailscale 100.x 段、
+  内网网关名、云厂商标识、API key 与 GitHub token 前缀。
+- README（中英）补 badge 行与「已知限制 / Known limitations」：依赖宿主侧栏 DOM 结构、失效时 fail-open、
+  只处理展示层、图标轨道（rail）态不折叠。
+
 ## [1.0.0] - 2026-11-10
 
 首个公开版本。

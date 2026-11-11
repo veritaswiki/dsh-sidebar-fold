@@ -1,11 +1,16 @@
 {
-  "name": "dsh-sidebar-fold",
-  "version": "1.0.0",
+  "name": "@veritaswiki/dsh-sidebar-fold",
+  "version": "1.1.0",
   "type": "module",
   "description": "Fold the DSH sidebar plugin entries into the Plugins row: one arrow toggles the group, a settings page picks which entries join it.",
   "license": "MIT",
+  "author": {
+    "name": "veritaswiki",
+    "url": "https://github.com/veritaswiki"
+  },
   "keywords": [
     "dsh-plugin",
+    "deepseek-harness",
     "dsh",
     "cordis",
     "sidebar",
@@ -20,10 +25,11 @@
     "url": "https://github.com/veritaswiki/dsh-sidebar-fold/issues"
   },
   "engines": {
+    "node": ">=20",
     "dsh": ">=0.2.2-rc.1"
   },
-  "dependencies": {
-    "@deepseek-ai/schemastery": "*"
+  "peerDependencies": {
+    "@deepseek-ai/schemastery": ">=3.19.0-0"
   },
   "icon": "./icon.svg",
   "exports": {
@@ -38,11 +44,16 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
+    "assets/icon-180.png",
     "README.md",
     "README.en.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

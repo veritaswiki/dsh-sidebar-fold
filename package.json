@@ -1,6 +1,6 @@
 {
   "name": "dsh-sidebar-fold-native",
-  "version": "1.1.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "Fold the DSH sidebar plugin entries into the Plugins row: one arrow toggles the group, a settings page picks which entries join it.",
   "license": "MIT",

@@ -1,11 +1,11 @@
 window.__ModuleLoader__.load({
-  id: '@veritaswiki/dsh-sidebar-fold',
+  id: 'dsh-sidebar-fold-native',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
 
     /** 本插件的包标识（同步用于 plugins.bundle.config） */
-    const PKG_ID = '@veritaswiki/dsh-sidebar-fold';
+    const PKG_ID = 'dsh-sidebar-fold-native';
     /** 本插件的 locale 命名空间与 Host Config 命名空间 */
     const NS = 'sidebar-fold';
     /** 折叠开关的本地缓存键（'1' = 折叠，首帧防闪烁与只读兜底） */
@@ -18,10 +18,24 @@ window.__ModuleLoader__.load({
     const HIT_ZONE = 30;
     /** 行宽小于这个值时说明侧栏在图标轨道，不接管点击 */
     const RAIL_WIDTH = 80;
+    /** 折叠行为（自动收回等）的本地缓存键 */
+    const BEHAVIOR_KEY = 'dsh.sidebar-fold.behavior';
+    /** 自动收回的默认延迟；0 = 不自动收 */
+    const AUTO_COLLAPSE_DEFAULT_MS = 5000;
+    /** 自动收回延迟的可调范围（0 之外） */
+    const AUTO_COLLAPSE_MIN_MS = 1000;
+    const AUTO_COLLAPSE_MAX_MS = 30000;
+    /** 折叠行为默认值（「恢复默认」也用它） */
+    const BEHAVIOR_DEFAULTS = {
+      autoCollapse: true,
+      autoCollapseDelayMs: AUTO_COLLAPSE_DEFAULT_MS,
+      collapseOnEntryClick: true,
+      collapseOnPointerLeave: false,
+    };
 
     const zh = {
       'settings.label': '左侧插件入口',
-      'settings.lead': '把不常用的插件入口收进「插件」这一行的折叠区：只折叠展示，不改变任何插件本身。',
+      'settings.lead': '把不常用的插件入口收进「插件」这一行的折叠区：只折叠展示，不改变任何插件本身；展开后按下面的设置自动收回。',
       'settings.fold.title': '折叠插件入口',
       'settings.fold.desc': '折叠后侧栏只留「插件」「更多」两行；点「插件」行最右侧的箭头也能直接折叠或展开。',
       'settings.group.title': '收进分组的入口',
@@ -29,13 +43,25 @@ window.__ModuleLoader__.load({
       'settings.group.all': '全部收进',
       'settings.group.none': '全部移出',
       'settings.group.empty': '侧栏里还没有其他插件入口。',
+      'settings.behavior.title': '折叠行为',
+      'settings.behavior.auto': '自动收回',
+      'settings.behavior.auto.desc': '展开后一段时间没有操作就自动收回，不用再手动点箭头。',
+      'settings.behavior.delay': '收回延迟',
+      'settings.behavior.delay.desc': '多久没有操作就收回；填 0 表示不自动收（可调范围 1000–30000 毫秒）。',
+      'settings.behavior.delay.unit': '毫秒',
+      'settings.behavior.click': '点击入口后立即收回',
+      'settings.behavior.click.desc': '点开分组里的任意入口后马上收起，不等延迟。',
+      'settings.behavior.leave': '鼠标移出侧栏时收回',
+      'settings.behavior.leave.desc': '指针离开侧栏区域就收起；容易误收，默认关闭。',
+      'settings.behavior.reset': '恢复默认',
+      'settings.behavior.reset.desc': '把折叠行为与「收进分组的入口」一起复位到默认值。',
       'settings.note': '侧栏收成图标轨道时不做折叠，图标本身就是紧凑形态。',
     };
 
     const en = {
       'settings.label': 'Sidebar plugin entries',
       'settings.lead':
-        'Keep rarely used plugin entries inside the fold on the Plugins row — presentation only, no plugin changes.',
+        'Keep rarely used plugin entries inside the fold on the Plugins row — presentation only, no plugin changes; an opened group collapses itself again as configured below.',
       'settings.fold.title': 'Fold plugin entries',
       'settings.fold.desc':
         'Folded leaves Plugins and More in the sidebar; the arrow at the right edge of the Plugins row folds it too.',
@@ -44,6 +70,18 @@ window.__ModuleLoader__.load({
       'settings.group.all': 'Group all',
       'settings.group.none': 'Group none',
       'settings.group.empty': 'No other plugin entry in the sidebar yet.',
+      'settings.behavior.title': 'Fold behaviour',
+      'settings.behavior.auto': 'Auto-collapse',
+      'settings.behavior.auto.desc': 'Folds the group back after a while without interaction, so you rarely fold it by hand.',
+      'settings.behavior.delay': 'Collapse delay',
+      'settings.behavior.delay.desc': 'Idle time before collapsing; 0 keeps it open (range 1000–30000 ms).',
+      'settings.behavior.delay.unit': 'ms',
+      'settings.behavior.click': 'Collapse after opening an entry',
+      'settings.behavior.click.desc': 'Folds immediately once you click an entry inside the group.',
+      'settings.behavior.leave': 'Collapse when the pointer leaves the sidebar',
+      'settings.behavior.leave.desc': 'Folds as soon as the pointer leaves the sidebar area; may fold too eagerly, off by default.',
+      'settings.behavior.reset': 'Restore defaults',
+      'settings.behavior.reset.desc': 'Resets the fold behaviour and the entry list to their defaults.',
       'settings.note': 'Folding is skipped while the sidebar is a collapsed icon rail.',
     };
 
@@ -88,18 +126,116 @@ window.__ModuleLoader__.load({
 }
 .sf-thumb{
   display:block;width:16px;height:16px;border-radius:50%;
-  background:var(--dsw-alias-label-primary-foreground,#ffffff);
+  background:var(--dsw-alias-label-primary-foreground,transparent);
   transition:transform .12s ease;
 }
 .sf-switch[aria-checked="true"] .sf-thumb{transform:translateX(16px)}
+.sf-inline{display:flex;align-items:center;gap:6px;flex:none}
+.sf-input{
+  box-sizing:border-box;width:88px;height:28px;padding:0 8px;
+  border:1px solid var(--dsw-alias-border-l2);border-radius:6px;
+  background:transparent;color:var(--dsw-alias-label-primary);
+  font:inherit;font-size:12px;line-height:18px;text-align:right;
+}
+.sf-input:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color);outline-offset:1px}
+.sf-input:disabled{opacity:.55;cursor:not-allowed}
+.sf-unit{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary)}
 .sf-empty{padding:16px 0;font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary)}
 .sf-note{margin:0;font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary)}
 `;
 
     // ---------------------------------------------------------------- 状态 ----
     const listeners = new Set();
-    const memory = { folded: true, excluded: [] };
+    const memory = { folded: true, excluded: [], behavior: { ...BEHAVIOR_DEFAULTS } };
     let hostForm = null;
+    /** 自动收回的唯一计时器句柄：任何一次改动都先清后设，绝不留残留。 */
+    let autoCollapseTimer = null;
+
+    /** 清掉自动收回计时器（折叠、卸载、切图标轨道、关掉自动收回时都要调用）。 */
+    function clearAutoCollapseTimer() {
+      if (autoCollapseTimer === null) return;
+      try {
+        window.clearTimeout(autoCollapseTimer);
+      } catch (err) {
+        /* ignore */
+      }
+      autoCollapseTimer = null;
+    }
+
+    /** 把任意来源（Host Config / localStorage / 设置页输入）的折叠行为归一化到合法范围。 */
+    function normalizeBehavior(raw) {
+      const src = raw !== null && typeof raw === 'object' ? raw : {};
+      const delayRaw = Number(src.autoCollapseDelayMs);
+      let delay = BEHAVIOR_DEFAULTS.autoCollapseDelayMs;
+      if (Number.isFinite(delayRaw)) {
+        if (delayRaw <= 0) delay = 0;
+        else delay = Math.min(AUTO_COLLAPSE_MAX_MS, Math.max(AUTO_COLLAPSE_MIN_MS, Math.round(delayRaw)));
+      }
+      return {
+        autoCollapse: typeof src.autoCollapse === 'boolean' ? src.autoCollapse : BEHAVIOR_DEFAULTS.autoCollapse,
+        autoCollapseDelayMs: delay,
+        collapseOnEntryClick:
+          typeof src.collapseOnEntryClick === 'boolean' ? src.collapseOnEntryClick : BEHAVIOR_DEFAULTS.collapseOnEntryClick,
+        collapseOnPointerLeave:
+          typeof src.collapseOnPointerLeave === 'boolean'
+            ? src.collapseOnPointerLeave
+            : BEHAVIOR_DEFAULTS.collapseOnPointerLeave,
+      };
+    }
+
+    function readBehavior() {
+      if (hostForm !== null) {
+        try {
+          const snap = hostForm.getSnapshot();
+          if (snap && snap.status === 'ready' && snap.value && typeof snap.value === 'object') {
+            const value = snap.value;
+            if (
+              typeof value.autoCollapse === 'boolean' ||
+              typeof value.autoCollapseDelayMs === 'number' ||
+              typeof value.collapseOnEntryClick === 'boolean' ||
+              typeof value.collapseOnPointerLeave === 'boolean'
+            ) {
+              return normalizeBehavior(value);
+            }
+          }
+        } catch (err) {
+          /* ignore */
+        }
+      }
+      try {
+        const raw = window.localStorage.getItem(BEHAVIOR_KEY);
+        if (raw !== null) return normalizeBehavior(JSON.parse(raw));
+      } catch (err) {
+        /* 同上 */
+      }
+      return { ...memory.behavior };
+    }
+
+    function setBehavior(patch) {
+      const next = normalizeBehavior({ ...readBehavior(), ...(patch !== null && typeof patch === 'object' ? patch : {}) });
+      memory.behavior = next;
+      persist(BEHAVIOR_KEY, JSON.stringify(next));
+      if (hostForm !== null) {
+        for (const key of Object.keys(BEHAVIOR_DEFAULTS)) {
+          try {
+            hostForm.set(key, next[key]);
+          } catch (err) {
+            /* ignore */
+          }
+        }
+      }
+      // 关掉自动收回或把延迟调成 0 时，立刻清掉在跑的计时器
+      if (!next.autoCollapse || next.autoCollapseDelayMs <= 0) clearAutoCollapseTimer();
+      emit();
+    }
+
+    /** 「恢复默认」：折叠行为 + 参与列表 + 折叠状态一起回到出厂值。 */
+    function resetToDefaults() {
+      clearAutoCollapseTimer();
+      setBehavior({ ...BEHAVIOR_DEFAULTS });
+      setExcluded([]);
+      setFolded(true);
+    }
 
     function readFolded() {
       if (hostForm !== null) {
@@ -231,13 +367,14 @@ window.__ModuleLoader__.load({
       const [snapshot, setSnapshot] = React.useState(() => ({
         folded: readFolded(),
         excluded: readExcluded(),
+        behavior: readBehavior(),
       }));
 
       React.useEffect(() => {
-        const refresh = () => setSnapshot({ folded: readFolded(), excluded: readExcluded() });
+        const refresh = () => setSnapshot({ folded: readFolded(), excluded: readExcluded(), behavior: readBehavior() });
         listeners.add(refresh);
         const onStorage = (event) => {
-          if (event.key === FOLDED_KEY || event.key === EXCLUDED_KEY) refresh();
+          if (event.key === FOLDED_KEY || event.key === EXCLUDED_KEY || event.key === BEHAVIOR_KEY) refresh();
         };
         window.addEventListener('storage', onStorage);
         return () => {
@@ -434,6 +571,134 @@ window.__ModuleLoader__.load({
         };
       }, [officialLabel, hasCandidates, state.folded]);
 
+      // ---- 自动收回 ----
+      // 只在「已展开」时排计时器；指针移动 / 键盘操作重置，点分组入口或指针离开侧栏立即收回。
+      // 收起、关掉开关、延迟为 0、切到图标轨道、组件卸载时一律先清计时器，不留残留。
+      React.useEffect(() => {
+        const behavior = state.behavior;
+        const delay = behavior.autoCollapseDelayMs;
+        if (state.folded || !behavior.autoCollapse || !(delay > 0) || officialLabel === null) {
+          clearAutoCollapseTimer();
+          return undefined;
+        }
+
+        const headerSelector = `${SIDEBAR_SCOPE} [class*="_panelList"] > button[aria-label="${escapeAttr(officialLabel)}"]`;
+        const entrySelector = entries
+          .map((entry) => `${SIDEBAR_SCOPE} [class*="_panelList"] > button[aria-label="${escapeAttr(entry.label)}"]`)
+          .join(',');
+
+        /** 侧栏容器矩形：用来判断还在不在侧栏里，以及是不是图标轨道。 */
+        const sidebarRect = () => {
+          try {
+            const btn = document.querySelector(headerSelector);
+            const root = btn === null || btn === undefined ? null : btn.closest('[class*="_root"]');
+            if (root === null) return null;
+            return root.getBoundingClientRect();
+          } catch (err) {
+            return null;
+          }
+        };
+
+        /**
+         * 先清后设：任何一次操作都把自动收回重新计时。
+         * 这里刻意不做 DOM 查询——pointermove 会高频调用它；图标轨道由下面的
+         * ResizeObserver 负责清计时器，到点回调里再兜底判一次。
+         */
+        const arm = () => {
+          clearAutoCollapseTimer();
+          autoCollapseTimer = window.setTimeout(() => {
+            autoCollapseTimer = null;
+            const now = sidebarRect();
+            // 到点时已在图标轨道就不收（轨道本身没有折叠形态）
+            if (now !== null && now.width > 0 && now.width < RAIL_WIDTH) return;
+            setFolded(true);
+          }, delay);
+        };
+
+        const leaveSidebar = (event) => {
+          if (!behavior.collapseOnPointerLeave) return false;
+          const rect = sidebarRect();
+          if (rect === null || rect.width <= 0) return false;
+          const outside =
+            event.clientX < rect.left - 8 ||
+            event.clientX > rect.right + 8 ||
+            event.clientY < rect.top - 8 ||
+            event.clientY > rect.bottom + 8;
+          if (!outside) return false;
+          clearAutoCollapseTimer();
+          setFolded(true);
+          return true;
+        };
+
+        const onPointerMove = (event) => {
+          if (leaveSidebar(event)) return;
+          arm();
+        };
+
+        const onKeyDown = () => {
+          arm();
+        };
+
+        // 点了分组里的入口 = 用户已经跳走，立刻收回，不等超时
+        const onEntryClick = (event) => {
+          if (!behavior.collapseOnEntryClick || entrySelector === '') return;
+          const target = event.target;
+          if (target === null || typeof target !== 'object' || typeof target.closest !== 'function') return;
+          let hit = null;
+          try {
+            hit = target.closest(entrySelector);
+          } catch (err) {
+            hit = null;
+          }
+          if (hit === null) return;
+          clearAutoCollapseTimer();
+          setFolded(true);
+        };
+
+        // 侧栏切到图标轨道（或从轨道展开回来）时立刻清掉计时器：轨道里不该有自动收回在跑
+        let railObserver = null;
+        try {
+          const header = document.querySelector(headerSelector);
+          const root = header === null || header === undefined ? null : header.closest('[class*="_root"]');
+          if (root !== null && typeof ResizeObserver === 'function') {
+            railObserver = new ResizeObserver(() => {
+              const rect = sidebarRect();
+              if (rect !== null && rect.width > 0 && rect.width < RAIL_WIDTH) clearAutoCollapseTimer();
+            });
+            railObserver.observe(root);
+          }
+        } catch (err) {
+          railObserver = null;
+        }
+
+        arm();
+        document.addEventListener('pointermove', onPointerMove, true);
+        document.addEventListener('keydown', onKeyDown, true);
+        document.addEventListener('click', onEntryClick, true);
+
+        return () => {
+          clearAutoCollapseTimer();
+          document.removeEventListener('pointermove', onPointerMove, true);
+          document.removeEventListener('keydown', onKeyDown, true);
+          document.removeEventListener('click', onEntryClick, true);
+          if (railObserver !== null) {
+            try {
+              railObserver.disconnect();
+            } catch (err) {
+              /* ignore */
+            }
+          }
+        };
+      }, [
+        state.folded,
+        state.behavior.autoCollapse,
+        state.behavior.autoCollapseDelayMs,
+        state.behavior.collapseOnEntryClick,
+        state.behavior.collapseOnPointerLeave,
+        officialLabel,
+        entries.map((entry) => entry.label).join('|'),
+      ]);
+
       return h(StyleTag, { rules });
     }
 
@@ -490,11 +755,62 @@ window.__ModuleLoader__.load({
       );
     }
 
+    /**
+     * 毫秒数输入：本地编辑、失焦或回车才提交，避免每敲一个字符就写一次 Host Config。
+     * 提交前统一走 normalizeBehavior()，非数字/空值直接还原，0 视作「不自动收」。
+     */
+    function DelayField(props) {
+      const [draft, setDraft] = React.useState(String(props.value));
+
+      React.useEffect(() => {
+        setDraft(String(props.value));
+      }, [props.value]);
+
+      const commit = () => {
+        if (draft.trim() === '') {
+          setDraft(String(props.value));
+          return;
+        }
+        const parsed = Number(draft);
+        if (!Number.isFinite(parsed)) {
+          setDraft(String(props.value));
+          return;
+        }
+        const next = normalizeBehavior({ ...readBehavior(), autoCollapseDelayMs: parsed });
+        props.onCommit(next.autoCollapseDelayMs);
+        setDraft(String(next.autoCollapseDelayMs));
+      };
+
+      return h(
+        'div',
+        { className: 'sf-inline' },
+        h('input', {
+          type: 'number',
+          className: 'sf-input',
+          min: 0,
+          max: AUTO_COLLAPSE_MAX_MS,
+          step: 500,
+          value: draft,
+          disabled: props.disabled === true,
+          'aria-label': props.label,
+          onChange: (event) => setDraft(event.target.value),
+          onBlur: commit,
+          onKeyDown: (event) => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            commit();
+          },
+        }),
+        h('span', { className: 'sf-unit' }, props.unit)
+      );
+    }
+
     // ------------------------------------------------------------ 设置页 ----
     function SettingsPage(props) {
       const ctx = props.ctx;
       const t = props.t;
       const state = useFoldState();
+      const behavior = state.behavior;
       const rows = usePanelEntries(ctx);
       const candidates = groupCandidates(rows);
 
@@ -527,6 +843,92 @@ window.__ModuleLoader__.load({
               label: t('settings.fold.title'),
               onChange: () => setFolded(!state.folded),
             })
+          )
+        ),
+        h(
+          'div',
+          { className: 'sf-sect' },
+          h(
+            'div',
+            { className: 'sf-sect-head' },
+            h('h2', { className: 'sf-sect-title' }, t('settings.behavior.title'))
+          ),
+          h(
+            'div',
+            { className: 'sf-row' },
+            h(
+              'div',
+              { className: 'sf-row-main' },
+              h('div', { className: 'sf-row-title' }, t('settings.behavior.auto')),
+              h('div', { className: 'sf-row-desc' }, t('settings.behavior.auto.desc'))
+            ),
+            h(Switch, {
+              checked: behavior.autoCollapse,
+              label: t('settings.behavior.auto'),
+              onChange: () => setBehavior({ autoCollapse: !behavior.autoCollapse }),
+            })
+          ),
+          h(
+            'div',
+            { className: 'sf-row' },
+            h(
+              'div',
+              { className: 'sf-row-main' },
+              h('div', { className: 'sf-row-title' }, t('settings.behavior.delay')),
+              h('div', { className: 'sf-row-desc' }, t('settings.behavior.delay.desc'))
+            ),
+            h(DelayField, {
+              value: behavior.autoCollapseDelayMs,
+              unit: t('settings.behavior.delay.unit'),
+              label: t('settings.behavior.delay'),
+              disabled: !behavior.autoCollapse,
+              onCommit: (value) => setBehavior({ autoCollapseDelayMs: value }),
+            })
+          ),
+          h(
+            'div',
+            { className: 'sf-row' },
+            h(
+              'div',
+              { className: 'sf-row-main' },
+              h('div', { className: 'sf-row-title' }, t('settings.behavior.click')),
+              h('div', { className: 'sf-row-desc' }, t('settings.behavior.click.desc'))
+            ),
+            h(Switch, {
+              checked: behavior.collapseOnEntryClick,
+              label: t('settings.behavior.click'),
+              onChange: () => setBehavior({ collapseOnEntryClick: !behavior.collapseOnEntryClick }),
+            })
+          ),
+          h(
+            'div',
+            { className: 'sf-row' },
+            h(
+              'div',
+              { className: 'sf-row-main' },
+              h('div', { className: 'sf-row-title' }, t('settings.behavior.leave')),
+              h('div', { className: 'sf-row-desc' }, t('settings.behavior.leave.desc'))
+            ),
+            h(Switch, {
+              checked: behavior.collapseOnPointerLeave,
+              label: t('settings.behavior.leave'),
+              onChange: () => setBehavior({ collapseOnPointerLeave: !behavior.collapseOnPointerLeave }),
+            })
+          ),
+          h(
+            'div',
+            { className: 'sf-row' },
+            h(
+              'div',
+              { className: 'sf-row-main' },
+              h('div', { className: 'sf-row-title' }, t('settings.behavior.reset')),
+              h('div', { className: 'sf-row-desc' }, t('settings.behavior.reset.desc'))
+            ),
+            h(
+              'button',
+              { type: 'button', className: 'sf-link', onClick: resetToDefaults },
+              t('settings.behavior.reset')
+            )
           )
         ),
         h(
@@ -591,6 +993,8 @@ window.__ModuleLoader__.load({
       apply(ctx) {
         ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'sidebar-fold: dictionaries');
         ctx.effect(() => bindHostForm(ctx), 'sidebar-fold: host config form');
+        // 插件被卸载时兜底清掉自动收回计时器（组件 effect 的 cleanup 之外再保一层）
+        ctx.effect(() => () => clearAutoCollapseTimer(), 'sidebar-fold: auto-collapse timer');
 
         const t = ctx.locale.bind(NS);
 

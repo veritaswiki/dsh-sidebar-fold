@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.2.0] - 2026-11-11
+
+### Added
+
+- **自动收回**：展开分组后自己收回去，三个触发条件——
+  ① `autoCollapseDelayMs`（默认 `5000` 毫秒）内无操作；② 点开分组里任意入口立即收回；③ 指针离开侧栏（可选，默认关）。
+  展开期间 `pointermove` / `keydown` 都会重置计时（先清后设）；收起、卸载、切到图标轨道时一律清掉计时器。
+- 设置页新增「折叠行为 / Fold behaviour」分区：自动收回开关、收回延迟（毫秒，1000–30000，0 = 不收）、
+  点击入口后立即收回、指针移出收回，以及「恢复默认」。
+- Host Config 新增 4 个 `volatile()` 键：`autoCollapse` / `autoCollapseDelayMs` / `collapseOnEntryClick` / `collapseOnPointerLeave`。
+
+### Changed
+
+- 设置页信息层级重排为三段：折叠总开关 / 折叠行为 / 收进分组的入口，每段一行说明 + 控件。
+- `client.js` 与 `index.js` 在两个工作副本（发布源与本地 dev 副本）之间逐字一致，仅包名字符串不同。
+
+### Fixed
+
+- **修好 0.1.0 的包名不一致（装不上的根因）**：`package.json` 已是 `dsh-sidebar-fold-native`，
+  但 `cordis.patch.yml` 的 `insert.name`、`index.js` 的 `export const name`、`client.js` 的模块 `id` 与 `PKG_ID`
+  还是旧的 `@veritaswiki/dsh-sidebar-fold`。Loader 按包名解析模块，四处不一致会让插件装上后加载失败；
+  本版四处统一为 `dsh-sidebar-fold-native`。
+
 ## [0.1.0] - 2026-11-11
 
 First public release.
